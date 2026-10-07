@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Hotel Terabithia</title>
+</head>
+<body>
+<script>
+const SENHA = "2004";
+let quartos = Array(21).fill(null); // Índice 1 a 20
+let hospedes = [];
+
+const moeda = v => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const lerTexto = msg => prompt(msg);
+const lerNum = msg => Number(prompt(msg));
+
+function login() {
+    alert("Bem-vindo ao Hotel Terabithia!");
+    let nome = lerTexto("Digite seu nome:");
+    if (!nome) return alert("Nome inválido."), null;
+
+    for (let t = 3; t > 0; t--) {
+        if (lerTexto("Digite sua senha:") === SENHA) {
+            alert(`Bem-vindo, ${nome}. É um imenso prazer ter você por aqui!`);
+            return nome;
+        }
+        if (t > 1) alert(`Senha incorreta. Tentativas restantes: ${t - 1}`);
+    }
+    alert("Número máximo de tentativas excedido.");
+    return null;
+}
+
+function mostrarQuartos() {
+    let texto = "MAPA DOS QUARTOS\n\n";
+    for (let i = 1; i <= 20; i++) {
+        texto += `${String(i).padStart(2, '0')}[${quartos[i] ? 'O' : 'L'}]   ${i % 5 === 0 ? '\n' : ''}`;
+    }
+    alert(texto);
+}
+
+function reservarQuarto(nomeFunc) {
+    alert("RESERVAS DE QUARTOS");
+    let diaria = lerNum("Digite o valor da diária:"), dias = lerNum("Digite a quantidade de dias:");
+    if (isNaN(diaria) || diaria <= 0 || isNaN(dias) || dias < 1 || dias > 30) return alert(`Valor inválido, ${nomeFunc}`);
+
+    let hospede = lerTexto("Digite o nome completo do hóspede:");
+    if (!hospede) return alert(`Valor inválido, ${nomeFunc}`);
+
+    let tipo = (lerTexto("S - Standard | E - Executivo | L - Luxo") || "").toUpperCase();
+    const fatores = { S: 1, E: 1.35, L: 1.65 };
+    if (!fatores[tipo]) return alert("Tipo de quarto inválido.");
+
+    mostrarQuartos();
+    let num = lerNum("Digite o número do quarto (1 a 20):");
+    if (isNaN(num) || num < 1 || num > 20) return alert(`Valor inválido, ${nomeFunc}`);
+
+    if (quartos[num]) {
+        let livres = quartos.map((q, i) => q === null && i > 0 ? i : null).filter(v => v);
+        return alert(`Quarto ocupado.\nQuartos livres: ${livres.length ? livres.join(", ") : "Nenhum"}`);
+    }
+
+    let sub = diaria * dias * fatores[tipo], serv = sub * 0.1, total = sub + serv;
+    let conf = lerTexto(`RESUMO\nHóspede: ${hospede}\nQuarto: ${num}\nTotal: ${moeda(total)}\n\nConfirmar? (S/N)`);
+
+    if (conf && conf.toUpperCase() === "S") {
+        quartos[num] = { hospede, quarto: num, total };
+        alert("Reserva efetuada com sucesso.");
+    } else alert("Reserva cancelada.");
+}
+
+function gerenciarHospedes() {
+    while (true) {
+        let op = lerTexto("1-Cadastrar | 2-Pesquisar | 3-Listar | 4-Voltar");
+        if (op === "4" || !op) break;
+
+        if (op === "1") {
+            if (hospedes.length >= 15) { alert("Limite de 15 hóspedes atingido."); continue; }
+            let nome = lerTexto("Nome do hóspede:");
+            if (!nome) { alert("Nome inválido."); continue; }
+            if (hospedes.some(h => h.nome.toLowerCase() === nome.toLowerCase())) { alert("Hóspede já cadastrado."); continue; }
+            hospedes.push({ nome, data: new Date().toLocaleString("pt-BR") });
+            alert("Cadastrado com sucesso.");
+        } 
+        else if (op === "2") {
+            let nome = lerTexto("Digite o nome exato:");
+            let enc = hospedes.find(h => h.nome.toLowerCase() === (nome || "").toLowerCase());
+            alert(enc ? `Encontrado!\nNome: ${enc.nome}\nData: ${enc.data}` : "Hóspede não encontrado.");
+        } 
+        else if (op === "3") {
+            if (!hospedes.length) { alert("Nenhum hóspede cadastrado."); continue; }
+            alert("HÓSPEDES:\n\n" + hospedes.map((h, i) => `${i+1}. ${h.nome} (${h.data})`).join("\n"));
+        } 
+        else alert("Opção inválida.");
+    }
+    alert("Voltando ao menu principal.");
+}
+
+function fecharCheckOut() {
+    let num = lerNum("Número do quarto (1 a 20):");
+    if (isNaN(num) || num < 1 || num > 20) return alert("Quarto inválido.");
+    if (!quartos[num]) return alert("Este quarto já está livre.");
+
+    let res = quartos[num];
+    let conf = lerTexto(`CHECK-OUT\nHóspede: ${res.hospede}\nTotal devido: ${moeda(res.total)}\n\nConfirmar pagamento? (S/N)`);
+    if (conf && conf.toUpperCase() === "S") {
+        quartos[num] = null;
+        alert("Check-out realizado com sucesso!");
+    } else alert("Check-out cancelado.");
+}
+
+function menuPrincipal() {
+    let nomeFunc = login();
+    if (!nomeFunc) return;
+
+    while (true) {
+        let op = lerTexto("1-Reservar | 2-Hóspedes | 3-Check-out | 4-Mapa | 5-Sair");
+        if (op === "5" || !op) break;
+
+        if (op === "1") reservarQuarto(nomeFunc);
+        else if (op === "2") gerenciarHospedes();
+        else if (op === "3") fecharCheckOut();
+        else if (op === "4") mostrarQuartos();
+        else alert("Opção inválida.");
+    }
+    alert("Obrigado por utilizar o sistema do Hotel Terabithia!");
+}
+
+menuPrincipal();
+</script>
+</body>
+</html>
